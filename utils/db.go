@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"././models"
+	"github.com/shodhangk/go-auth/models"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql" //Gorm postgres dialect interface
