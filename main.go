@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/shodhangk/go-auth/models"
 	"github.com/shodhangk/go-auth/routes"
 
 	"github.com/joho/godotenv"
@@ -20,7 +21,7 @@ func main() {
 	fmt.Println(e)
 
 	port := os.Getenv("PORT")
-
+	models.InitDB()
 	// Handle routes
 	http.Handle("/", routes.Handlers())
 

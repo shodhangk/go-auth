@@ -18,14 +18,25 @@ func Handlers() *mux.Router {
 	r.HandleFunc("/api", controllers.TestAPI).Methods("GET")
 	r.HandleFunc("/register", controllers.CreateUser).Methods("POST")
 	r.HandleFunc("/login", controllers.Login).Methods("POST")
+	r.HandleFunc("/items", controllers.Items).Methods("GET")
+	r.HandleFunc("/item/{id}", controllers.Item).Methods("GET")
 
 	// Auth route
 	s := r.PathPrefix("/auth").Subrouter()
 	s.Use(auth.JwtVerify)
-	s.HandleFunc("/user", controllers.FetchUsers).Methods("GET")
+	s.HandleFunc("/users", controllers.FetchUsers).Methods("GET")
 	s.HandleFunc("/user/{id}", controllers.GetUser).Methods("GET")
 	s.HandleFunc("/user/{id}", controllers.UpdateUser).Methods("PUT")
 	s.HandleFunc("/user/{id}", controllers.DeleteUser).Methods("DELETE")
+
+	s.HandleFunc("/orders", controllers.Orders).Methods("GET")
+	s.HandleFunc("/place_order", controllers.CreateOrder).Methods("POST")
+
+	s.HandleFunc("/cart", controllers.CartItems).Methods("GET")
+	s.HandleFunc("/cart", controllers.AddToCart).Methods("POST")
+	s.HandleFunc("/cart", controllers.UpdateCart).Methods("PUT")
+	s.HandleFunc("/cart/:item_id", controllers.UpdateCart).Methods("DELETE")
+
 	return r
 }
 

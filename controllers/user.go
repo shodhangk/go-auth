@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"githib.c/models"
-	"github.com/shodhangk/go-auth/utils"
+	"github.com/shodhangk/go-auth/models"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
@@ -21,8 +20,6 @@ type ErrorResponse struct {
 type error interface {
 	Error() string
 }
-
-var db = utils.ConnectDB()
 
 func MagaAPI(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("i am here")
@@ -47,7 +44,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func FindOne(email, password string) map[string]interface{} {
 	user := &models.User{}
 
-	if err := db.Where("Email = ?", email).First(user).Error; err != nil {
+	if err := models.DB.Where("Email = ?", email).First(user).Error; err != nil {
 		var resp = map[string]interface{}{"status": false, "message": "Email address not found"}
 		return resp
 	}
@@ -94,11 +91,12 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			Err: "Password Encryption  failed",
 		}
 		json.NewEncoder(w).Encode(err)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	user.Password = string(pass)
 
-	createdUser := db.Create(user)
+	createdUser := models.DB.Create(user)
 	var errMessage = createdUser.Error
 
 	if createdUser.Error != nil {
@@ -109,9 +107,18 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 //FetchUser function
 func FetchUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	if v := ctx.Value("user"); v == nil {
+		err := ErrorResponse{
+			Err: "User Not found",
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
 	var users []models.User
-	db.Preload("auths").Find(&users)
-
+	fmt.Println(models.DB)
+	models.DB.Find(&users)
 	json.NewEncoder(w).Encode(users)
 }
 
@@ -119,9 +126,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	params := mux.Vars(r)
 	var id = params["id"]
-	db.First(&user, id)
+	models.DB.First(&user, id)
 	json.NewDecoder(r.Body).Decode(user)
-	db.Save(&user)
+	models.DB.Save(&user)
 	json.NewEncoder(w).Encode(&user)
 }
 
@@ -129,8 +136,8 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
 	var user models.User
-	db.First(&user, id)
-	db.Delete(&user)
+	models.DB.First(&user, id)
+	models.DB.Delete(&user)
 	json.NewEncoder(w).Encode("User deleted")
 }
 
@@ -138,6 +145,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var id = params["id"]
 	var user models.User
-	db.First(&user, id)
+	models.DB.First(&user, id)
 	json.NewEncoder(w).Encode(&user)
 }
